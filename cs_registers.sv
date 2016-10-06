@@ -316,7 +316,7 @@ module riscv_cs_registers
   generate
     genvar i;
     for(i = 0; i < N_EXT_CNT; i++)
-    begin
+    begin : cr0
       assign PCCR_in[N_PERF_COUNTERS - N_EXT_CNT + i] = ext_counters_i[i];
     end
   endgenerate
