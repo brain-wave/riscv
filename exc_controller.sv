@@ -67,9 +67,6 @@ module riscv_exc_controller
   logic [1:0] pc_mux_int, pc_mux_int_q;
   logic [5:0] cause_int, cause_int_q;
 
-  integer i;
-
-
   // a trap towards the debug unit is generated when one of the
   // following conditions are true:
   // - ebreak instruction encountered
@@ -100,6 +97,7 @@ module riscv_exc_controller
     pc_mux_int = 'x;
 
     if (irq_enable_i) begin
+      integer i;
       // pc_mux_int is a critical signal, so try to get it as soon as possible
       if (|irq_i)
         pc_mux_int = EXC_PC_IRQ;

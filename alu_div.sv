@@ -86,9 +86,15 @@ module riscv_alu_div
   // attention: logical shift in case of negative operand B!
   assign BMux_D      = (LoadEn_S) ? OpB_DI : {CompInv_SP, (BReg_DP[$high(BReg_DP):1])};
 
-  //assign ResReg_DP_rev = {<<{ResReg_DP}};  // bitreversal
-  assign ResReg_DP_rev[0:C_WIDTH-1] = ResReg_DP[C_WIDTH-1:0];
-
+  // assign ResReg_DP_rev = {<<{ResReg_DP}};  // bitreversal
+  // assign ResReg_DP_rev[0:C_WIDTH-1] = ResReg_DP[C_WIDTH-1:0];  // not allowed
+  always_comb
+  begin : bitrev
+     integer i;
+     for (i = 0; i < C_WIDTH; i++) begin
+	ResReg_DP_rev[i] = ResReg_DP[C_WIDTH-1-i];
+     end
+  end
   assign OutMux_D    = (RemSel_SP) ? AReg_DP : ResReg_DP_rev;
 
   // invert if necessary
