@@ -31,6 +31,7 @@
 import apu_core_package::*;
 
 `include "riscv_config.sv"
+//`include "../riscv_tracer.sv"
 
 import riscv_defines::*;
 

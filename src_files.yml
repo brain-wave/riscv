@@ -1,6 +1,7 @@
 riscv:
   incdirs: [
     include,
+    include/..,
     ../../rtl/includes
   ]
   files: [
