@@ -1,6 +1,8 @@
 riscv:
   incdirs: [
     include,
+    include/..,
+    ../../rtl/includes
   ]
   files: [
     include/riscv_defines.sv,
