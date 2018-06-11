@@ -58,7 +58,7 @@ module riscv_alu
   generate
     genvar k;
     for(k = 0; k < 32; k++)
-    begin
+    begin : a0
       assign operand_a_rev[k] = operand_a_i[31-k];
     end
   endgenerate
@@ -67,7 +67,7 @@ module riscv_alu
   generate
     genvar m;
     for(m = 0; m < 32; m++)
-    begin
+    begin : a1
       assign operand_a_neg_rev[m] = operand_a_neg[31-m];
     end
   endgenerate
@@ -302,7 +302,7 @@ module riscv_alu
   genvar       j;
   generate
     for(j = 0; j < 32; j++)
-    begin
+    begin : a2
       assign shift_left_result[j] = shift_right_result[31-j];
     end
   endgenerate
@@ -359,7 +359,7 @@ module riscv_alu
   genvar i;
   generate
     for(i = 0; i < 4; i++)
-    begin
+    begin : a3
       assign is_equal_vec[i]   = (operand_a_i[8*i+7:8*i] == operand_b_i[8*i+7:i*8]);
       assign is_greater_vec[i] = $signed({operand_a_i[8*i+7] & cmp_signed[i], operand_a_i[8*i+7:8*i]})
                                   >
@@ -950,7 +950,7 @@ module alu_ff
 
   generate
     genvar j;
-    for (j = 0; j < LEN; j++) begin
+    for (j = 0; j < LEN; j++) begin : b0
       assign index_lut[j] = $unsigned(j);
     end
   endgenerate
@@ -959,10 +959,10 @@ module alu_ff
     genvar k;
     genvar l;
     genvar level;
-    for (level = 0; level < NUM_LEVELS; level++) begin
+    for (level = 0; level < NUM_LEVELS; level++) begin : b9
     //------------------------------------------------------------
     if (level < NUM_LEVELS-1) begin
-      for (l = 0; l < 2**level; l++) begin
+      for (l = 0; l < 2**level; l++) begin : b1
         assign sel_nodes[2**level-1+l]   = sel_nodes[2**(level+1)-1+l*2] | sel_nodes[2**(level+1)-1+l*2+1];
         assign index_nodes[2**level-1+l] = (sel_nodes[2**(level+1)-1+l*2] == 1'b1) ?
                                            index_nodes[2**(level+1)-1+l*2] : index_nodes[2**(level+1)-1+l*2+1];
@@ -970,7 +970,7 @@ module alu_ff
     end
     //------------------------------------------------------------
     if (level == NUM_LEVELS-1) begin
-      for (k = 0; k < 2**level; k++) begin
+      for (k = 0; k < 2**level; k++) begin : b2
         // if two successive indices are still in the vector...
         if (k * 2 < LEN) begin
           assign sel_nodes[2**level-1+k]   = in_i[k*2] | in_i[k*2+1];
@@ -1015,25 +1015,25 @@ module alu_popcnt
 
   genvar      l, m, n, p;
   generate for(l = 0; l < 16; l++)
-    begin
+    begin : c0
       assign cnt_l1[l] = {1'b0, in_i[2*l]} + {1'b0, in_i[2*l + 1]};
     end
   endgenerate
 
   generate for(m = 0; m < 8; m++)
-    begin
+    begin : c1
       assign cnt_l2[m] = {1'b0, cnt_l1[2*m]} + {1'b0, cnt_l1[2*m + 1]};
     end
   endgenerate
 
   generate for(n = 0; n < 4; n++)
-    begin
+    begin : c2
       assign cnt_l3[n] = {1'b0, cnt_l2[2*n]} + {1'b0, cnt_l2[2*n + 1]};
     end
   endgenerate
 
   generate for(p = 0; p < 2; p++)
-    begin
+    begin : c3
       assign cnt_l4[p] = {1'b0, cnt_l3[2*p]} + {1'b0, cnt_l3[2*p + 1]};
     end
   endgenerate

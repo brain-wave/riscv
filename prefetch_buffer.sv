@@ -139,7 +139,6 @@ module riscv_fetch_fifo
   // FIFO management
   //////////////////////////////////////////////////////////////////////////////
 
-  int j;
   always_comb
   begin
     addr_int    = addr_Q;
@@ -148,6 +147,7 @@ module riscv_fetch_fifo
     is_hwlp_int = is_hwlp_Q;
 
     if (in_valid_i) begin
+      int j;
       for(j = 0; j < DEPTH; j++) begin
         if (~valid_Q[j]) begin
           addr_int[j]  = in_addr_i;
