@@ -208,6 +208,7 @@ module riscv_cs_registers
   //                                |___/   //
   ////////////////////////////////////////////
 
+generate
 if(PULP_SECURE==1) begin
   // read logic
   always_comb
@@ -577,6 +578,7 @@ end else begin //PULP_SECURE == 0
     endcase
   end
 end //PULP_SECURE
+endgenerate
 
   assign hwlp_data_o = csr_wdata_int;
 
@@ -703,18 +705,19 @@ end //PULP_SECURE
   assign PCCR_in[9]  = branch_i & branch_taken_i  & id_valid_q; // nr of taken branches (conditional)
   assign PCCR_in[10] = id_valid_i & is_decoding_i & is_compressed_i;  // compressed instruction counter
 
-  if (APU == 1) begin
-     assign PCCR_in[PERF_APU_ID  ] = apu_typeconflict_i & ~apu_dep_i;
-     assign PCCR_in[PERF_APU_ID+1] = apu_contention_i;
-     assign PCCR_in[PERF_APU_ID+2] = apu_dep_i & ~apu_contention_i;
-     assign PCCR_in[PERF_APU_ID+3] = apu_wb_i;
-  end
+  generate
+    if (APU == 1) begin
+        assign PCCR_in[PERF_APU_ID  ] = apu_typeconflict_i & ~apu_dep_i;
+        assign PCCR_in[PERF_APU_ID+1] = apu_contention_i;
+        assign PCCR_in[PERF_APU_ID+2] = apu_dep_i & ~apu_contention_i;
+        assign PCCR_in[PERF_APU_ID+3] = apu_wb_i;
+    end
+  endgenerate
 
   // assign external performance counters
   generate
     genvar i;
-    for(i = 0; i < N_EXT_CNT; i++)
-    begin
+    for(i = 0; i < N_EXT_CNT; i++) begin : rcr_1
       assign PCCR_in[PERF_EXT_ID + i] = ext_counters_i[i];
     end
   endgenerate

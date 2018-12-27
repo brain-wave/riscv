@@ -64,7 +64,7 @@ module riscv_alu
   generate
     genvar k;
     for(k = 0; k < 32; k++)
-    begin
+    begin : ra_1
       assign operand_a_rev[k] = operand_a_i[31-k];
     end
   endgenerate
@@ -73,7 +73,7 @@ module riscv_alu
   generate
     genvar m;
     for(m = 0; m < 32; m++)
-    begin
+    begin : ra_2
       assign operand_a_neg_rev[m] = operand_a_neg[31-m];
     end
   endgenerate
@@ -289,7 +289,7 @@ module riscv_alu
   genvar       j;
   generate
     for(j = 0; j < 32; j++)
-    begin
+    begin : ra_3
       assign shift_left_result[j] = shift_right_result[31-j];
     end
   endgenerate
@@ -352,7 +352,7 @@ module riscv_alu
   genvar i;
   generate
     for(i = 0; i < 4; i++)
-    begin
+    begin : ra_4
       assign is_equal_vec[i]   = (operand_a_i[8*i+7:8*i] == operand_b_i[8*i+7:i*8]);
       assign is_greater_vec[i] = $signed({operand_a_i[8*i+7] & cmp_signed[i], operand_a_i[8*i+7:8*i]})
                                   >
@@ -450,62 +450,64 @@ module riscv_alu
   //////////////////////////////////////////////////
   logic [31:0] fclass_result;
 
-  if (FPU == 1) begin
-     logic [7:0]   fclass_exponent;
-     logic [22:0]  fclass_mantiassa;
-     logic         fclass_ninf;
-     logic         fclass_pinf;
-     logic         fclass_normal;
-     logic         fclass_subnormal;
-     logic         fclass_nzero;
-     logic         fclass_pzero;
-     logic         fclass_is_negative;
-     logic         fclass_snan_a;
-     logic         fclass_qnan_a;
-     logic         fclass_snan_b;
-     logic         fclass_qnan_b;
+  generate
+    if (FPU == 1) begin
+        logic [7:0]   fclass_exponent;
+        logic [22:0]  fclass_mantiassa;
+        logic         fclass_ninf;
+        logic         fclass_pinf;
+        logic         fclass_normal;
+        logic         fclass_subnormal;
+        logic         fclass_nzero;
+        logic         fclass_pzero;
+        logic         fclass_is_negative;
+        logic         fclass_snan_a;
+        logic         fclass_qnan_a;
+        logic         fclass_snan_b;
+        logic         fclass_qnan_b;
 
-     assign fclass_exponent    = operand_a_i[30:23];
-     assign fclass_mantiassa   = operand_a_i[22:0];
-     assign fclass_is_negative = operand_a_i[31];
+        assign fclass_exponent    = operand_a_i[30:23];
+        assign fclass_mantiassa   = operand_a_i[22:0];
+        assign fclass_is_negative = operand_a_i[31];
 
-     assign fclass_ninf        = operand_a_i == 32'hFF800000;
-     assign fclass_pinf        = operand_a_i == 32'h7F800000;
-     assign fclass_normal      = fclass_exponent != 0 && fclass_exponent != 255;
-     assign fclass_subnormal   = fclass_exponent == 0 && fclass_mantiassa != 0;
-     assign fclass_nzero       = operand_a_i == 32'h80000000;
-     assign fclass_pzero       = operand_a_i == 32'h00000000;
-     assign fclass_snan_a      = operand_a_i[30:0] == 32'h7fa00000;
-     assign fclass_qnan_a      = operand_a_i[30:0] == 32'h7fc00000;
-     assign fclass_snan_b      = operand_b_i[30:0] == 32'h7fa00000;
-     assign fclass_qnan_b      = operand_b_i[30:0] == 32'h7fc00000;
+        assign fclass_ninf        = operand_a_i == 32'hFF800000;
+        assign fclass_pinf        = operand_a_i == 32'h7F800000;
+        assign fclass_normal      = fclass_exponent != 0 && fclass_exponent != 255;
+        assign fclass_subnormal   = fclass_exponent == 0 && fclass_mantiassa != 0;
+        assign fclass_nzero       = operand_a_i == 32'h80000000;
+        assign fclass_pzero       = operand_a_i == 32'h00000000;
+        assign fclass_snan_a      = operand_a_i[30:0] == 32'h7fa00000;
+        assign fclass_qnan_a      = operand_a_i[30:0] == 32'h7fc00000;
+        assign fclass_snan_b      = operand_b_i[30:0] == 32'h7fa00000;
+        assign fclass_qnan_b      = operand_b_i[30:0] == 32'h7fc00000;
 
-     assign fclass_result[31:0] = {{22{1'b0}},
-                                   fclass_qnan_a,
-                                   fclass_snan_a,
-                                   fclass_pinf,
-                                   (fclass_normal    && !fclass_is_negative),
-                                   (fclass_subnormal && !fclass_is_negative),
-                                   fclass_pzero,
-                                   fclass_nzero,
-                                   (fclass_subnormal && fclass_is_negative),
-                                   (fclass_normal    && fclass_is_negative),
-                                   fclass_ninf};
+        assign fclass_result[31:0] = {{22{1'b0}},
+                                    fclass_qnan_a,
+                                    fclass_snan_a,
+                                    fclass_pinf,
+                                    (fclass_normal    && !fclass_is_negative),
+                                    (fclass_subnormal && !fclass_is_negative),
+                                    fclass_pzero,
+                                    fclass_nzero,
+                                    (fclass_subnormal && fclass_is_negative),
+                                    (fclass_normal    && fclass_is_negative),
+                                    fclass_ninf};
 
 
-     // float special cases
-     assign f_is_qnan          =  fclass_qnan_a | fclass_qnan_b;
-     assign f_is_snan          =  fclass_snan_a | fclass_snan_b;
+        // float special cases
+        assign f_is_qnan          =  fclass_qnan_a | fclass_qnan_b;
+        assign f_is_snan          =  fclass_snan_a | fclass_snan_b;
 
-     assign minmax_is_fp_special = (operator_i == ALU_FMIN || operator_i == ALU_FMAX) & (f_is_snan | f_is_qnan);
-     assign fp_canonical_nan     = 32'h7fc00000;
-  end else begin // (FPU == 0)
-     assign minmax_is_fp_special = '0;
-     assign f_is_qnan            = '0;
-     assign f_is_snan            = '0;
-     assign fclass_result        = '0;
-     assign fp_canonical_nan     = '0;
-  end
+        assign minmax_is_fp_special = (operator_i == ALU_FMIN || operator_i == ALU_FMAX) & (f_is_snan | f_is_qnan);
+        assign fp_canonical_nan     = 32'h7fc00000;
+    end else begin // (FPU == 0)
+        assign minmax_is_fp_special = '0;
+        assign f_is_qnan            = '0;
+        assign f_is_snan            = '0;
+        assign fclass_result        = '0;
+        assign fp_canonical_nan     = '0;
+    end
+  endgenerate
 
 
   //////////////////////////////////////////////////
@@ -904,55 +906,57 @@ module riscv_alu
    logic [31:0] result_div;
    logic        div_ready;
 
-   if (SHARED_INT_DIV == 1) begin
+   generate
+    if (SHARED_INT_DIV == 1) begin
 
-      assign result_div = '0;
-      assign div_ready = '1;
-      assign div_valid = '0;
+        assign result_div = '0;
+        assign div_ready = '1;
+        assign div_valid = '0;
 
-   end else begin : int_div
+    end else begin : int_div
 
-      logic        div_signed;
-      logic        div_op_a_signed;
-      logic        div_op_b_signed;
-      logic [5:0]  div_shift_int;
+        logic        div_signed;
+        logic        div_op_a_signed;
+        logic        div_op_b_signed;
+        logic [5:0]  div_shift_int;
 
-      assign div_signed = operator_i[0];
+        assign div_signed = operator_i[0];
 
-      assign div_op_a_signed = operand_a_i[31] & div_signed;
-      assign div_op_b_signed = operand_b_i[31] & div_signed;
+        assign div_op_a_signed = operand_a_i[31] & div_signed;
+        assign div_op_b_signed = operand_b_i[31] & div_signed;
 
-      assign div_shift_int = ff_no_one ? 6'd31 : clb_result;
-      assign div_shift = div_shift_int + (div_op_a_signed ? 6'd0 : 6'd1);
+        assign div_shift_int = ff_no_one ? 6'd31 : clb_result;
+        assign div_shift = div_shift_int + (div_op_a_signed ? 6'd0 : 6'd1);
 
-      assign div_valid = (operator_i == ALU_DIV) || (operator_i == ALU_DIVU) ||
-                         (operator_i == ALU_REM) || (operator_i == ALU_REMU);
+        assign div_valid = (operator_i == ALU_DIV) || (operator_i == ALU_DIVU) ||
+                            (operator_i == ALU_REM) || (operator_i == ALU_REMU);
 
 
-      // inputs A and B are swapped
-      riscv_alu_div div_i
-        (
-         .Clk_CI       ( clk               ),
-         .Rst_RBI      ( rst_n             ),
+        // inputs A and B are swapped
+        riscv_alu_div div_i
+            (
+            .Clk_CI       ( clk               ),
+            .Rst_RBI      ( rst_n             ),
 
-         // input IF
-         .OpA_DI       ( operand_b_i       ),
-         .OpB_DI       ( shift_left_result ),
-         .OpBShift_DI  ( div_shift         ),
-         .OpBIsZero_SI ( (cnt_result == 0) ),
+            // input IF
+            .OpA_DI       ( operand_b_i       ),
+            .OpB_DI       ( shift_left_result ),
+            .OpBShift_DI  ( div_shift         ),
+            .OpBIsZero_SI ( (cnt_result == 0) ),
 
-         .OpBSign_SI   ( div_op_a_signed   ),
-         .OpCode_SI    ( operator_i[1:0]   ),
+            .OpBSign_SI   ( div_op_a_signed   ),
+            .OpCode_SI    ( operator_i[1:0]   ),
 
-         .Res_DO       ( result_div        ),
+            .Res_DO       ( result_div        ),
 
-         // Hand-Shake
-         .InVld_SI     ( div_valid         ),
-         .OutRdy_SI    ( ex_ready_i        ),
-         .OutVld_SO    ( div_ready         )
-         );
-   end
-
+            // Hand-Shake
+            .InVld_SI     ( div_valid         ),
+            .OutRdy_SI    ( ex_ready_i        ),
+            .OutVld_SO    ( div_ready         )
+            );
+    end
+  endgenerate
+  
   ////////////////////////////////////////////////////////
   //   ____                 _ _     __  __              //
   //  |  _ \ ___  ___ _   _| | |_  |  \/  |_   ___  __  //
@@ -1063,7 +1067,7 @@ module alu_ff
 
   generate
     genvar j;
-    for (j = 0; j < LEN; j++) begin
+    for (j = 0; j < LEN; j++) begin : ra_5
       assign index_lut[j] = $unsigned(j);
     end
   endgenerate
@@ -1072,10 +1076,10 @@ module alu_ff
     genvar k;
     genvar l;
     genvar level;
-    for (level = 0; level < NUM_LEVELS; level++) begin
+    for (level = 0; level < NUM_LEVELS; level++) begin : ra_6
     //------------------------------------------------------------
     if (level < NUM_LEVELS-1) begin
-      for (l = 0; l < 2**level; l++) begin
+      for (l = 0; l < 2**level; l++) begin : ra_6_1
         assign sel_nodes[2**level-1+l]   = sel_nodes[2**(level+1)-1+l*2] | sel_nodes[2**(level+1)-1+l*2+1];
         assign index_nodes[2**level-1+l] = (sel_nodes[2**(level+1)-1+l*2] == 1'b1) ?
                                            index_nodes[2**(level+1)-1+l*2] : index_nodes[2**(level+1)-1+l*2+1];
@@ -1083,7 +1087,7 @@ module alu_ff
     end
     //------------------------------------------------------------
     if (level == NUM_LEVELS-1) begin
-      for (k = 0; k < 2**level; k++) begin
+      for (k = 0; k < 2**level; k++) begin : ra_6_2
         // if two successive indices are still in the vector...
         if (k * 2 < LEN-1) begin
           assign sel_nodes[2**level-1+k]   = in_i[k*2] | in_i[k*2+1];
@@ -1128,25 +1132,25 @@ module alu_popcnt
 
   genvar      l, m, n, p;
   generate for(l = 0; l < 16; l++)
-    begin
+    begin : ra_7
       assign cnt_l1[l] = {1'b0, in_i[2*l]} + {1'b0, in_i[2*l + 1]};
     end
   endgenerate
 
   generate for(m = 0; m < 8; m++)
-    begin
+    begin : ra_8
       assign cnt_l2[m] = {1'b0, cnt_l1[2*m]} + {1'b0, cnt_l1[2*m + 1]};
     end
   endgenerate
 
   generate for(n = 0; n < 4; n++)
-    begin
+    begin : ra_9
       assign cnt_l3[n] = {1'b0, cnt_l2[2*n]} + {1'b0, cnt_l2[2*n + 1]};
     end
   endgenerate
 
   generate for(p = 0; p < 2; p++)
-    begin
+    begin : ra_10
       assign cnt_l4[p] = {1'b0, cnt_l3[2*p]} + {1'b0, cnt_l3[2*p + 1]};
     end
   endgenerate
